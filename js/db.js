@@ -64,17 +64,18 @@ const DB = {
   },
 
   async assignTopicToStudent(studentId, topicId, isAssigned = true) {
+    const val = isAssigned ? 1 : 0;
     const existing = await db.studentTopics
       .where({ studentId, topicId })
       .first();
 
     if (existing) {
-      return await db.studentTopics.update(existing.id, { isAssigned });
+      return await db.studentTopics.update(existing.id, { isAssigned: val });
     } else {
       return await db.studentTopics.add({
         studentId,
         topicId,
-        isAssigned,
+        isAssigned: val,
         completedAt: null
       });
     }
@@ -99,15 +100,18 @@ const DB = {
 
   async getAssignedTopics(studentId) {
     const records = await db.studentTopics
-      .where({ studentId, isAssigned: 1 })
+      .where('studentId')
+      .equals(studentId)
       .toArray();
 
-    const topicIds = records.map(r => r.topicId);
+    const assigned = records.filter(r => r.isAssigned === 1 || r.isAssigned === true);
+
+    const topicIds = assigned.map(r => r.topicId);
     const topics = topicIds.length > 0
       ? await db.topics.where('id').anyOf(topicIds).toArray()
       : [];
 
-    return records.map(r => ({
+    return assigned.map(r => ({
       ...r,
       topic: topics.find(t => t.id === r.topicId)
     }));
