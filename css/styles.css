@@ -294,18 +294,22 @@ body {
   bottom: 0;
   background: rgba(0,0,0,0.5);
   display: flex;
-  align-items: flex-end;
-  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
   animation: fadeIn 0.2s;
+  padding: 16px;
 }
 
 .modal {
   background: var(--card);
-  border-radius: 16px 16px 0 0;
+  border-radius: 16px;
   width: 100%;
-  max-height: 90vh;
+  max-width: 400px;
+  max-height: 85vh;
   overflow-y: auto;
-  animation: slideUp 0.3s;
+  animation: fadeIn 0.2s;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
 .modal-header {

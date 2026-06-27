@@ -30,7 +30,11 @@ async function renderTopics(container) {
           <option value="${sub}" ${topicFilterSubject === sub ? 'selected' : ''}>${sub}</option>
         `).join('')}
       </select>
-      <button class="btn btn-primary btn-sm" onclick="showAddTopicModal()">
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <span style="font-size: 14px; color: #6B7280;">${filtered.length} konu</span>
+      <button class="btn btn-primary" onclick="showAddTopicModal()">
         ${UI.createIcon('plus', 16)} Konu Ekle
       </button>
     </div>
@@ -38,21 +42,23 @@ async function renderTopics(container) {
     ${filtered.length > 0 ? `
       <div>
         ${filtered.map(topic => `
-          <div class="list-item">
-            <div class="list-item-content">
-              <div class="list-item-title">${topic.name}</div>
-              <div class="list-item-subtitle">
-                <span class="badge badge-primary">${topic.examCategory}</span>
-                <span class="badge badge-success" style="margin-left: 4px;">${topic.subject}</span>
+          <div class="card" style="padding: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="flex: 1;">
+                <div style="font-weight: 500; font-size: 15px;">${topic.name}</div>
+                <div style="margin-top: 4px;">
+                  <span class="badge badge-primary">${topic.examCategory}</span>
+                  <span class="badge badge-success" style="margin-left: 4px;">${topic.subject}</span>
+                </div>
               </div>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn btn-outline btn-sm" onclick="showEditTopicModal(${topic.id})">
-                ${UI.createIcon('edit', 16)}
-              </button>
-              <button class="btn btn-outline btn-sm" onclick="deleteTopic(${topic.id})" style="color: var(--danger);">
-                ${UI.createIcon('trash', 16)}
-              </button>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-outline btn-sm" onclick="showEditTopicModal(${topic.id})" style="padding: 8px;">
+                  ${UI.createIcon('edit', 16)}
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="deleteTopic(${topic.id})" style="padding: 8px; color: var(--danger);">
+                  ${UI.createIcon('trash', 16)}
+                </button>
+              </div>
             </div>
           </div>
         `).join('')}
@@ -62,19 +68,22 @@ async function renderTopics(container) {
 }
 
 function showAddTopicModal() {
-  const content = `
-    <form id="topicForm" onsubmit="saveTopic(event)">
+  const html = `
+    <div style="padding: 20px;">
+      <h3 style="margin: 0 0 20px 0; font-size: 18px;">Yeni Konu Ekle</h3>
+      
       <div class="form-group">
         <label class="form-label">Sınav Kategorisi</label>
-        <select class="form-select" id="topicCategory" required>
+        <select class="form-select" id="topicCategory">
           <option value="TYT">TYT</option>
           <option value="AYT">AYT</option>
           <option value="LGS">LGS</option>
         </select>
       </div>
+      
       <div class="form-group">
         <label class="form-label">Ders</label>
-        <select class="form-select" id="topicSubject" required>
+        <select class="form-select" id="topicSubject">
           <option value="Matematik">Matematik</option>
           <option value="Geometri">Geometri</option>
           <option value="Fizik">Fizik</option>
@@ -86,33 +95,41 @@ function showAddTopicModal() {
           <option value="Felsefe">Felsefe</option>
         </select>
       </div>
+      
       <div class="form-group">
         <label class="form-label">Konu Adı</label>
-        <input type="text" class="form-input" id="topicName" required placeholder="Konu adı">
+        <input type="text" class="form-input" id="topicNameInput" placeholder="Örn: Türev, İntegral...">
       </div>
-    </form>
+      
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button class="btn btn-outline" style="flex: 1;" onclick="UI.closeModal()">İptal</button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="handleAddTopic()">Kaydet</button>
+      </div>
+    </div>
   `;
-
-  const footer = `
-    <button class="btn btn-outline" onclick="UI.closeModal()">İptal</button>
-    <button class="btn btn-primary" onclick="document.getElementById('topicForm').dispatchEvent(new Event('submit'))">Kaydet</button>
-  `;
-
-  UI.showModal('Yeni Konu', content, footer);
+  
+  UI.showModal('Yeni Konu', html);
+  
+  setTimeout(() => {
+    const input = document.getElementById('topicNameInput');
+    if (input) input.focus();
+  }, 100);
 }
 
-async function saveTopic(event) {
-  event.preventDefault();
+async function handleAddTopic() {
   const examCategory = document.getElementById('topicCategory').value;
   const subject = document.getElementById('topicSubject').value;
-  const name = document.getElementById('topicName').value.trim();
+  const name = document.getElementById('topicNameInput').value.trim();
 
-  if (!name) return;
+  if (!name) {
+    UI.showToast('Konu adı boş olamaz');
+    return;
+  }
 
   const existingTopics = await DB.getTopics();
   const maxOrder = existingTopics
     .filter(t => t.examCategory === examCategory && t.subject === subject)
-    .reduce((max, t) => Math.max(max, t.order), 0);
+    .reduce((max, t) => Math.max(max, t.order || 0), 0);
 
   await DB.addTopic({ examCategory, subject, name, order: maxOrder + 1 });
   UI.closeModal();
@@ -124,19 +141,22 @@ async function showEditTopicModal(id) {
   const topic = await DB.topics.get(id);
   if (!topic) return;
 
-  const content = `
-    <form id="editTopicForm" onsubmit="updateTopic(event, ${id})">
+  const html = `
+    <div style="padding: 20px;">
+      <h3 style="margin: 0 0 20px 0; font-size: 18px;">Konu Düzenle</h3>
+      
       <div class="form-group">
         <label class="form-label">Sınav Kategorisi</label>
-        <select class="form-select" id="editTopicCategory" required>
+        <select class="form-select" id="editTopicCategory">
           <option value="TYT" ${topic.examCategory === 'TYT' ? 'selected' : ''}>TYT</option>
           <option value="AYT" ${topic.examCategory === 'AYT' ? 'selected' : ''}>AYT</option>
           <option value="LGS" ${topic.examCategory === 'LGS' ? 'selected' : ''}>LGS</option>
         </select>
       </div>
+      
       <div class="form-group">
         <label class="form-label">Ders</label>
-        <select class="form-select" id="editTopicSubject" required>
+        <select class="form-select" id="editTopicSubject">
           <option value="Matematik" ${topic.subject === 'Matematik' ? 'selected' : ''}>Matematik</option>
           <option value="Geometri" ${topic.subject === 'Geometri' ? 'selected' : ''}>Geometri</option>
           <option value="Fizik" ${topic.subject === 'Fizik' ? 'selected' : ''}>Fizik</option>
@@ -148,28 +168,31 @@ async function showEditTopicModal(id) {
           <option value="Felsefe" ${topic.subject === 'Felsefe' ? 'selected' : ''}>Felsefe</option>
         </select>
       </div>
+      
       <div class="form-group">
         <label class="form-label">Konu Adı</label>
-        <input type="text" class="form-input" id="editTopicName" required value="${topic.name}">
+        <input type="text" class="form-input" id="editTopicNameInput" value="${topic.name}">
       </div>
-    </form>
+      
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button class="btn btn-outline" style="flex: 1;" onclick="UI.closeModal()">İptal</button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="handleUpdateTopic(${id})">Güncelle</button>
+      </div>
+    </div>
   `;
-
-  const footer = `
-    <button class="btn btn-outline" onclick="UI.closeModal()">İptal</button>
-    <button class="btn btn-primary" onclick="document.getElementById('editTopicForm').dispatchEvent(new Event('submit'))">Güncelle</button>
-  `;
-
-  UI.showModal('Konu Düzenle', content, footer);
+  
+  UI.showModal('Konu Düzenle', html);
 }
 
-async function updateTopic(event, id) {
-  event.preventDefault();
+async function handleUpdateTopic(id) {
   const examCategory = document.getElementById('editTopicCategory').value;
   const subject = document.getElementById('editTopicSubject').value;
-  const name = document.getElementById('editTopicName').value.trim();
+  const name = document.getElementById('editTopicNameInput').value.trim();
 
-  if (!name) return;
+  if (!name) {
+    UI.showToast('Konu adı boş olamaz');
+    return;
+  }
 
   await DB.updateTopic(id, { examCategory, subject, name });
   UI.closeModal();

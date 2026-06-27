@@ -1,26 +1,30 @@
 const CACHE_NAME = 'ogrenci-takip-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/js/app.js',
-  '/js/db.js',
-  '/js/pages/dashboard.js',
-  '/js/pages/students.js',
-  '/js/pages/topics.js',
-  '/js/pages/daily-log.js',
-  '/js/pages/weekly-plan.js',
-  '/js/pages/reports.js',
-  '/js/pages/settings.js',
-  '/js/utils/date.js',
-  '/js/utils/ui.js',
-  '/data/default-topics.js'
+  './',
+  './index.html',
+  './css/styles.css',
+  './js/app.js',
+  './js/db.js',
+  './js/pages/dashboard.js',
+  './js/pages/students.js',
+  './js/pages/topics.js',
+  './js/pages/daily-log.js',
+  './js/pages/weekly-plan.js',
+  './js/pages/reports.js',
+  './js/pages/settings.js',
+  './js/utils/date.js',
+  './js/utils/ui.js',
+  './data/default-topics.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
+      .then((cache) => {
+        return cache.addAll(urlsToCache);
+      })
   );
   self.skipWaiting();
 });
@@ -47,7 +51,19 @@ self.addEventListener('fetch', (event) => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request).then((response) => {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        });
+      })
+      .catch(() => {
+        return caches.match('./index.html');
       })
   );
 });

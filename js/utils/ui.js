@@ -44,10 +44,10 @@ const UI = {
     return new Promise((resolve) => {
       this.showModal(
         'Onay',
-        `<p>${message}</p>`,
+        `<p style="margin: 0; line-height: 1.5;">${message}</p>`,
         `
-          <button class="btn btn-outline" onclick="UI.closeModal(); window._confirmResolve(false);">İptal</button>
-          <button class="btn btn-danger" onclick="UI.closeModal(); window._confirmResolve(true);">Onayla</button>
+          <button class="btn btn-outline" style="flex: 1;" onclick="UI.closeModal(); window._confirmResolve(false);">İptal</button>
+          <button class="btn btn-danger" style="flex: 1;" onclick="UI.closeModal(); window._confirmResolve(true);">Onayla</button>
         `
       );
       window._confirmResolve = resolve;
@@ -71,7 +71,9 @@ const UI = {
       chevronLeft: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>`,
       chevronRight: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
       star: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
-      filter: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>`
+      filter: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>`,
+      download: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
+      upload: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>`
     };
     return icons[type] || icons.home;
   },
