@@ -7,7 +7,9 @@ const pages = {
   'daily-log': { render: renderDailyLog, title: 'Günlük Takip' },
   'weekly-plan': { render: renderWeeklyPlan, title: 'Haftalık Planlama' },
   reports: { render: renderReports, title: 'Aylık Rapor' },
-  settings: { render: renderSettings, title: 'Ayarlar' }
+  settings: { render: renderSettings, title: 'Ayarlar' },
+  timer: { render: renderTimer, title: 'Zamanlayıcı' },
+  analysis: { render: renderAnalysis, title: 'Konu Analizi' }
 };
 
 function navigateTo(page, params = {}) {
@@ -22,7 +24,10 @@ function navigateTo(page, params = {}) {
     app.innerHTML = `
       <div class="app-container">
         <header class="header">
-          <h1>${pageConfig.title}</h1>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            ${page !== 'dashboard' ? `<button onclick="navigateTo('dashboard')" style="background:none;border:none;color:white;cursor:pointer;padding:4px;">${UI.createIcon('chevronLeft', 20)}</button>` : ''}
+            <h1 style="margin:0;">${pageConfig.title}</h1>
+          </div>
         </header>
         <main class="content" id="page-content"></main>
         ${UI.renderNavbar(page)}
@@ -44,6 +49,7 @@ function initApp() {
   });
 
   DB.initDefaultTopics();
+  initTheme();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').then(reg => {

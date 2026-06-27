@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ogrenci-takip-v2';
+const CACHE_NAME = 'ogrenci-takip-v3';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -17,6 +17,8 @@ self.addEventListener('install', (event) => {
         './js/pages/weekly-plan.js',
         './js/pages/reports.js',
         './js/pages/settings.js',
+        './js/pages/timer.js',
+        './js/pages/analysis.js',
         './js/utils/date.js',
         './js/utils/ui.js',
         './data/default-topics.js',

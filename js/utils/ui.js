@@ -81,10 +81,10 @@ const UI = {
   renderNavbar(activePage) {
     const items = [
       { id: 'dashboard', label: 'Anasayfa', icon: 'home' },
-      { id: 'students', label: 'Öğrenciler', icon: 'users' },
-      { id: 'daily-log', label: 'Günlük', icon: 'clock' },
-      { id: 'weekly-plan', label: 'Planlama', icon: 'calendar' },
-      { id: 'reports', label: 'Raporlar', icon: 'chart' }
+      { id: 'timer', label: 'Zamanlayıcı', icon: 'clock' },
+      { id: 'daily-log', label: 'Kayıt', icon: 'book' },
+      { id: 'analysis', label: 'Analiz', icon: 'chart' },
+      { id: 'settings', label: 'Ayarlar', icon: 'settings' }
     ];
 
     return `

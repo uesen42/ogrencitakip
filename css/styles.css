@@ -560,3 +560,88 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(22px);
 }
+
+body.dark-theme {
+  --bg: #111827;
+  --text: #F9FAFB;
+  --card: #1F2937;
+  --border: #374151;
+}
+
+body.dark-theme .header {
+  background: #1E3A5F;
+}
+
+body.dark-theme .modal {
+  background: #1F2937;
+}
+
+body.dark-theme .toast {
+  background: #374151;
+}
+
+body.dark-theme .stat-card {
+  background: #1F2937;
+  border-color: #374151;
+}
+
+body.dark-theme .list-item {
+  border-color: #374151;
+}
+
+body.dark-theme .tab {
+  color: #9CA3AF;
+}
+
+body.dark-theme .tab.active {
+  color: #60A5FA;
+  border-bottom-color: #60A5FA;
+}
+
+body.dark-theme .form-input,
+body.dark-theme .form-select,
+body.dark-theme .form-textarea {
+  background: #374151;
+  border-color: #4B5563;
+  color: #F9FAFB;
+}
+
+body.dark-theme .btn-outline {
+  border-color: #4B5563;
+  color: #F9FAFB;
+}
+
+body.dark-theme .empty-state {
+  color: #9CA3AF;
+}
+
+body.dark-theme .bottom-nav {
+  background: #1F2937;
+  border-color: #374151;
+}
+
+body.dark-theme .modal-header,
+body.dark-theme .modal-footer {
+  border-color: #374151;
+}
+
+body.dark-theme .table th {
+  background: #1F2937;
+  color: #9CA3AF;
+}
+
+body.dark-theme .table td {
+  border-color: #374151;
+}
+
+body.dark-theme .progress-bar {
+  background: #374151;
+}
+
+body.dark-theme input[type="checkbox"] + .slider {
+  background: #4B5563;
+}
+
+body.dark-theme input[type="checkbox"]:checked + .slider {
+  background: #3B82F6;
+}
