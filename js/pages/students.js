@@ -1,14 +1,14 @@
 let studentSearchQuery = '';
+let assignStudentId = null;
+let assignSelectedCategory = 'TYT';
+let assignAllTopics = [];
+let assignAssignedMap = {};
 
 async function renderStudents(container) {
   const students = await DB.getStudents();
   const filtered = studentSearchQuery
     ? students.filter(s => s.name.toLowerCase().includes(studentSearchQuery.toLowerCase()))
     : students;
-
-  const topics = await DB.getTopics();
-  const topicMap = {};
-  topics.forEach(t => topicMap[t.id] = t);
 
   container.innerHTML = `
     <div class="search-box">
@@ -55,49 +55,37 @@ async function renderStudents(container) {
 }
 
 function getExamBadgeColor(examType) {
-  const colors = {
-    'TYT': 'primary',
-    'AYT': 'success',
-    'LGS': 'warning',
-    'KARMA': 'danger'
-  };
+  const colors = { 'TYT': 'primary', 'AYT': 'success', 'LGS': 'warning', 'KARMA': 'danger' };
   return colors[examType] || 'primary';
 }
 
 function showAddStudentModal() {
   const content = `
-    <form id="studentForm" onsubmit="saveStudent(event)">
-      <div class="form-group">
-        <label class="form-label">Öğrenci Adı</label>
-        <input type="text" class="form-input" id="studentName" required placeholder="Ad Soyad">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Sınav Türü</label>
-        <select class="form-select" id="examType" required>
-          <option value="TYT">TYT</option>
-          <option value="AYT">AYT</option>
-          <option value="LGS">LGS</option>
-          <option value="KARMA">KARMA (Birden Fazla)</option>
-        </select>
-      </div>
-    </form>
+    <div class="form-group">
+      <label class="form-label">Öğrenci Adı</label>
+      <input type="text" class="form-input" id="studentName" required placeholder="Ad Soyad">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sınav Türü</label>
+      <select class="form-select" id="examType" required>
+        <option value="TYT">TYT</option>
+        <option value="AYT">AYT</option>
+        <option value="LGS">LGS</option>
+        <option value="KARMA">KARMA (Birden Fazla)</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 16px;">
+      <button class="btn btn-outline" style="flex: 1;" onclick="UI.closeModal()">İptal</button>
+      <button class="btn btn-primary" style="flex: 1;" onclick="handleAddStudent()">Kaydet</button>
+    </div>
   `;
-
-  const footer = `
-    <button class="btn btn-outline" onclick="UI.closeModal()">İptal</button>
-    <button class="btn btn-primary" onclick="document.getElementById('studentForm').dispatchEvent(new Event('submit'))">Kaydet</button>
-  `;
-
-  UI.showModal('Yeni Öğrenci', content, footer);
+  UI.showModal('Yeni Öğrenci', content);
 }
 
-async function saveStudent(event) {
-  event.preventDefault();
+async function handleAddStudent() {
   const name = document.getElementById('studentName').value.trim();
   const examType = document.getElementById('examType').value;
-
-  if (!name) return;
-
+  if (!name) { UI.showToast('İsim gerekli'); return; }
   await DB.addStudent({ name, examType });
   UI.closeModal();
   UI.showToast('Öğrenci eklendi');
@@ -107,48 +95,40 @@ async function saveStudent(event) {
 async function showEditStudentModal(id) {
   const student = await DB.getStudent(id);
   if (!student) return;
-
   const content = `
-    <form id="editStudentForm" onsubmit="updateStudent(event, ${id})">
-      <div class="form-group">
-        <label class="form-label">Öğrenci Adı</label>
-        <input type="text" class="form-input" id="editStudentName" required value="${student.name}">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Sınav Türü</label>
-        <select class="form-select" id="editExamType" required>
-          <option value="TYT" ${student.examType === 'TYT' ? 'selected' : ''}>TYT</option>
-          <option value="AYT" ${student.examType === 'AYT' ? 'selected' : ''}>AYT</option>
-          <option value="LGS" ${student.examType === 'LGS' ? 'selected' : ''}>LGS</option>
-          <option value="KARMA" ${student.examType === 'KARMA' ? 'selected' : ''}>KARMA</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Durum</label>
-        <select class="form-select" id="editStudentActive">
-          <option value="1" ${student.active ? 'selected' : ''}>Aktif</option>
-          <option value="0" ${!student.active ? 'selected' : ''}>Pasif</option>
-        </select>
-      </div>
-    </form>
+    <div class="form-group">
+      <label class="form-label">Öğrenci Adı</label>
+      <input type="text" class="form-input" id="editStudentName" required value="${student.name}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sınav Türü</label>
+      <select class="form-select" id="editExamType" required>
+        <option value="TYT" ${student.examType === 'TYT' ? 'selected' : ''}>TYT</option>
+        <option value="AYT" ${student.examType === 'AYT' ? 'selected' : ''}>AYT</option>
+        <option value="LGS" ${student.examType === 'LGS' ? 'selected' : ''}>LGS</option>
+        <option value="KARMA" ${student.examType === 'KARMA' ? 'selected' : ''}>KARMA</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Durum</label>
+      <select class="form-select" id="editStudentActive">
+        <option value="1" ${student.active ? 'selected' : ''}>Aktif</option>
+        <option value="0" ${!student.active ? 'selected' : ''}>Pasif</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 16px;">
+      <button class="btn btn-outline" style="flex: 1;" onclick="UI.closeModal()">İptal</button>
+      <button class="btn btn-primary" style="flex: 1;" onclick="handleUpdateStudent(${id})">Güncelle</button>
+    </div>
   `;
-
-  const footer = `
-    <button class="btn btn-outline" onclick="UI.closeModal()">İptal</button>
-    <button class="btn btn-primary" onclick="document.getElementById('editStudentForm').dispatchEvent(new Event('submit'))">Güncelle</button>
-  `;
-
-  UI.showModal('Öğrenci Düzenle', content, footer);
+  UI.showModal('Öğrenci Düzenle', content);
 }
 
-async function updateStudent(event, id) {
-  event.preventDefault();
+async function handleUpdateStudent(id) {
   const name = document.getElementById('editStudentName').value.trim();
   const examType = document.getElementById('editExamType').value;
   const active = document.getElementById('editStudentActive').value === '1';
-
   if (!name) return;
-
   await DB.updateStudent(id, { name, examType, active });
   UI.closeModal();
   UI.showToast('Öğrenci güncellendi');
@@ -158,7 +138,6 @@ async function updateStudent(event, id) {
 async function deleteStudent(id) {
   const confirmed = await UI.confirm('Bu öğrenciyi silmek istediğinize emin misiniz? Tüm ilişkili veriler silinecektir.');
   if (!confirmed) return;
-
   await DB.deleteStudent(id);
   UI.showToast('Öğrenci silindi');
   renderStudents(document.getElementById('page-content'));
@@ -171,9 +150,6 @@ async function showStudentDetail(id) {
   const assignedTopics = await DB.getAssignedTopics(id);
   const logs = await DB.getStudyLogsByStudent(id);
   const totalMinutes = logs.reduce((sum, log) => sum + log.durationMinutes, 0);
-
-  const topics = await DB.getTopics();
-  const categories = [...new Set(topics.map(t => t.examCategory))];
 
   const content = `
     <div style="margin-bottom: 16px;">
@@ -194,29 +170,21 @@ async function showStudentDetail(id) {
     </div>
 
     <div style="margin-bottom: 16px;">
-      <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Atanan Konular</h3>
-      ${assignedTopics.length > 0 ? `
-        <div>
-          ${assignedTopics.map(st => `
-            <div class="list-item" style="padding: 8px 0;">
-              <div class="list-item-content">
-                <div class="list-item-title" style="font-size: 13px;">
-                  ${st.topic ? `${st.topic.name}` : 'Bilinmeyen'}
-                </div>
-                <div class="list-item-subtitle">${st.topic ? `${st.topic.examCategory} - ${st.topic.subject}` : ''}</div>
-              </div>
-              ${st.completedAt ? `
-                <span class="badge badge-success">Tamamlandı</span>
-              ` : `
-                <button class="btn btn-sm btn-outline" onclick="completeStudentTopic(${id}, ${st.topicId})">Tamamla</button>
-              `}
+      <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Atanan Konular (${assignedTopics.length})</h3>
+      ${assignedTopics.length > 0 ? assignedTopics.map(st => `
+        <div class="list-item" style="padding: 8px 0;">
+          <div class="list-item-content">
+            <div class="list-item-title" style="font-size: 13px;">
+              ${st.topic ? st.topic.name : 'Bilinmeyen'}
             </div>
-          `).join('')}
+            <div class="list-item-subtitle">${st.topic ? `${st.topic.examCategory} - ${st.topic.subject}` : ''}</div>
+          </div>
+          ${st.completedAt ? '<span class="badge badge-success">Tamamlandı</span>' : ''}
         </div>
-      ` : '<p style="color: #6B7280; font-size: 14px;">Henüz konu atanmamış</p>'}
+      `).join('') : '<p style="color: #6B7280; font-size: 14px;">Henüz konu atanmamış</p>'}
     </div>
 
-    <button class="btn btn-primary btn-block" onclick="UI.closeModal(); navigateTo('students'); showAssignTopicsModal(${id});">
+    <button class="btn btn-primary btn-block" onclick="UI.closeModal(); setTimeout(() => showAssignTopicsModal(${id}), 200);">
       Konu Ata / Düzenle
     </button>
   `;
@@ -226,66 +194,74 @@ async function showStudentDetail(id) {
   `);
 }
 
+async function showAssignTopicsModal(studentId) {
+  assignStudentId = studentId;
+  const student = await DB.getStudent(studentId);
+  if (!student) return;
+
+  assignAllTopics = await DB.getTopics();
+  const assignedRecords = await DB.getStudentTopics(studentId);
+  assignAssignedMap = {};
+  assignedRecords.forEach(r => { assignAssignedMap[r.topicId] = r.isAssigned; });
+
+  const categories = [...new Set(assignAllTopics.map(t => t.examCategory))];
+  assignSelectedCategory = categories[0] || 'TYT';
+
+  const content = `
+    <div class="tabs" id="assignTabs">
+      ${categories.map(cat => `
+        <button class="tab ${cat === assignSelectedCategory ? 'active' : ''}"
+                onclick="switchAssignCategory('${cat}')">
+          ${cat}
+        </button>
+      `).join('')}
+    </div>
+    <div id="assignTopicList" style="max-height: 50vh; overflow-y: auto;"></div>
+  `;
+
+  UI.showModal(`${student.name} - Konu Ata`, content, `
+    <button class="btn btn-primary" style="flex: 1;" onclick="UI.closeModal(); renderStudents(document.getElementById('page-content'));">Bitti</button>
+  `);
+
+  renderAssignTopicList();
+}
+
+function switchAssignCategory(cat) {
+  assignSelectedCategory = cat;
+  document.querySelectorAll('#assignTabs .tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  renderAssignTopicList();
+}
+
+function renderAssignTopicList() {
+  const filtered = assignAllTopics.filter(t => t.examCategory === assignSelectedCategory);
+  const container = document.getElementById('assignTopicList');
+  if (!container) return;
+
+  container.innerHTML = filtered.map(topic => `
+    <div class="list-item" style="padding: 10px 0;">
+      <div class="list-item-content">
+        <div class="list-item-title" style="font-size: 14px;">${topic.name}</div>
+        <div class="list-item-subtitle">${topic.subject}</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" ${assignAssignedMap[topic.id] ? 'checked' : ''}
+               onchange="handleToggleTopic(${topic.id}, this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+  `).join('');
+}
+
+async function handleToggleTopic(topicId, isAssigned) {
+  assignAssignedMap[topicId] = isAssigned;
+  await DB.assignTopicToStudent(assignStudentId, topicId, isAssigned);
+  UI.showToast(isAssigned ? 'Konu atandı' : 'Konu kaldırıldı');
+}
+
 async function completeStudentTopic(studentId, topicId) {
   await DB.completeTopic(studentId, topicId);
   UI.showToast('Konu tamamlandı olarak işaretlendi');
   UI.closeModal();
   setTimeout(() => showStudentDetail(studentId), 100);
-}
-
-async function showAssignTopicsModal(studentId) {
-  const student = await DB.getStudent(studentId);
-  if (!student) return;
-
-  const allTopics = await DB.getTopics();
-  const assignedRecords = await DB.getStudentTopics(studentId);
-  const assignedMap = {};
-  assignedRecords.forEach(r => assignedMap[r.topicId] = r.isAssigned);
-
-  const categories = [...new Set(allTopics.map(t => t.examCategory))];
-  const subjects = [...new Set(allTopics.map(t => t.subject))];
-
-  let selectedCategory = categories[0];
-
-  function renderTopicList() {
-    const filtered = allTopics.filter(t => t.examCategory === selectedCategory);
-    const topicList = document.getElementById('topicList');
-    if (topicList) {
-      topicList.innerHTML = filtered.map(topic => `
-        <div class="list-item" style="padding: 8px 0;">
-          <div class="list-item-content">
-            <div class="list-item-title" style="font-size: 13px;">${topic.name}</div>
-            <div class="list-item-subtitle">${topic.subject}</div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" ${assignedMap[topic.id] ? 'checked' : ''}
-                   onchange="toggleTopicAssignment(${studentId}, ${topic.id}, this.checked)">
-            <span class="slider"></span>
-          </label>
-        </div>
-      `).join('');
-    }
-  }
-
-  const content = `
-    <div class="tabs">
-      ${categories.map(cat => `
-        <button class="tab ${cat === selectedCategory ? 'active' : ''}"
-                onclick="selectedCategory='${cat}'; this.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); this.classList.add('active'); renderTopicList();">
-          ${cat}
-        </button>
-      `).join('')}
-    </div>
-    <div id="topicList"></div>
-  `;
-
-  UI.showModal(`${student.name} - Konu Ata`, content, `
-    <button class="btn btn-primary" onclick="UI.closeModal(); renderStudents(document.getElementById('page-content'));">Bitti</button>
-  `);
-
-  renderTopicList();
-}
-
-async function toggleTopicAssignment(studentId, topicId, isAssigned) {
-  await DB.assignTopicToStudent(studentId, topicId, isAssigned);
 }
